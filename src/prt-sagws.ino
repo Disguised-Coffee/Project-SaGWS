@@ -9,10 +9,10 @@
  * 
  *      Simple program to water a single plant.
  * 
- *      ~ Version 1.2 ~ 
- *       - Fixed soil sensor always being on
+ *      ~ Version 1.3 ~ 
+ *       - Implemented waterTheFlowers evokable function. 
  * 
- * Last updated: 11/11/23
+ * Last updated: 12/8/23
  */
 
 //LIBRARIES
@@ -39,17 +39,41 @@
 //Water Bucket Constants, calibrate as needed.
 #define MIN_LVL 2800
 
-#define MAX_TIME_WATERING 20  // Max seconds for watering session
-
 #define BY_PASS_WATERLEVEL true //Bypasses the water level
 
-//Determines whether to use the failsafe watering system (timed watering)
-bool failSafe = false;
+#define MAX_TIME_WATERING 20  // Max seconds for watering session
 
-bool canSendData = true;
+//NOT SO GLOBAL VARIABLES
+bool failSafe = false; //Determines whether to use the failsafe watering system (timed watering)
+
+bool canSendData = true; //Prevents sop() from sending debug data
+
+/*
+ * prevents sop() from sending data.
+*/
+void stopDataStream(){
+  sop("Debug stream going dark...");
+  canSendData = false;
+}
+
+// Does vice versa with sop()
+void startDebugSteam(){
+  canSendData = true;
+  sop("Debug stream going live!");
+}
 
 //Allow waterTheFlowers() to be evoked by a webhook
 bool evokedWateringSession = false;
+
+/**
+ * Function to bypass watering parameters.
+ * 
+ * Use with caution.
+*/
+void evokeWatering(){
+  evokedWateringSession = true;
+}
+
 
 //Timer setup
 int counter = 0;
@@ -71,7 +95,7 @@ void stopTimer(){
 
 // setup() runs once, when the device is first turned on.
 void setup() {
-  // Particle.function("waterThePlants", evokeWatering); //binds function evokeWatering() to webhook
+  Particle.function("waterThePlants", evokeWatering); //binds function evokeWatering() to webhook
   
   Serial.begin(9600); //Remove this in final product, used for debugging
   sop("--------------\n\n~ Project SAGWS (baseline) ~ \n Running Version 1.1\n Program by Disguised_Coffee\n\n-------------- ");
@@ -372,13 +396,4 @@ void createEventPayload(int pumpRunTime, int initSM, int finlSM, int waterLvl){/
   }
   // Publish info to DB
   Particle.publish("sendWateringInformation", jw.getBuffer());
-}
-
-/**
- * Function to bypass watering parameters.
- * 
- * Use with caution.
-*/
-void evokeWatering(){
-  evokedWateringSession = true;
 }
