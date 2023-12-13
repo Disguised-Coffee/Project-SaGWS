@@ -51,13 +51,13 @@ bool canSendData = true; //Prevents sop() from sending debug data
 /*
  * prevents sop() from sending data.
 */
-void stopDataStream(){
+void stopDebugStream(){
   sop("Debug stream going dark...");
   canSendData = false;
 }
 
 // Does vice versa with sop()
-void startDebugSteam(){
+void startDebugStream(){
   canSendData = true;
   sop("Debug stream going live!");
 }
@@ -125,13 +125,13 @@ void loop() {
   // every 2 hours, or so, check for watering.
   if((checkTime(2) && (basicSoilSensTest() > DRY_SOIL)) || evokedWateringSession){
     evokedWateringSession = false;
-    canSendData = true;
+    startDebugStream();
     waterTheFlowers();
     sop(String(counter));
   }
   delay(2000);
   sop("Waiting..."); //Ideally, a sleep function would be better.
-  canSendData = false; //The first time it's fine... but please, limit your bandwidth!!!
+  stopDebugStream(); //The first time it's fine... but please, limit your bandwidth!!!
 }
 
 /**
@@ -151,7 +151,7 @@ void waterTheFlowers(){
     startTimer();
     startPump();
     int i = 0;
-    canSendData = false;
+    stopDebugStream();
     while(isNotOverWatering() && isWaterLevelInThreshold() && counter < MAX_TIME_WATERING){
       if (i < 256){
         i = 0;
@@ -162,7 +162,7 @@ void waterTheFlowers(){
       }
       delay(50);
     }
-    canSendData = true;
+    startDebugStream();
     turnOffSoilSensPwr();
     stopPump();
     stopTimer();
